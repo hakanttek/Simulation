@@ -5,21 +5,23 @@ Headers in Project Properties.
  */
 package com.simulation.transportation.components;
 
-import com.simulation.transportation.units.Date;
-import com.simulation.transportation.units.Length;
-import com.simulation.transportation.units.Speed;
+import com.simulation.contracts.transportation.components.IMap;
+import com.simulation.contracts.transportation.units.IDateUnit;
+import com.simulation.contracts.transportation.units.ILength;
+import com.simulation.contracts.transportation.units.ISpeed;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  * @author hakantek
  */
-public class Map {
+public class Map implements IMap {
     /* generator method */
-    protected Map(String name, Date currentDate) {
+    protected Map(String name, IDateUnit currentDate) {
 
         this.name = name;
-        this.date = currentDate;
+        this.dateUnit = currentDate;
         this.nodes = new ArrayList<>();
         this.roads = new ArrayList<>();
         this.rails = new ArrayList<>();
@@ -30,52 +32,79 @@ public class Map {
     public final String name;
     
     /* date in map */
-    private Date date;
-    public Date getDate() {
-        return date;
+    private IDateUnit dateUnit;
+    @Override
+    public IDateUnit getDate() {
+        return dateUnit;
     }
-    public void setCurrentDate(Date date) {
-        this.date = date;
+    @Override
+    public void setCurrentDate(IDateUnit dateUnit) {
+        this.dateUnit = dateUnit;
     }
     
     /* nodes of map */
-    protected ArrayList<Node> nodes;
-    public Node getNode(int index){
+    private List<INode> nodes;
+    @Override
+    public List<INode> getNodes() {
+		return nodes;
+	}
+    @Override
+    public INode getNode(int index){
         return this.nodes.get(index);
     }
+    @Override
     public int numberOfNodes(){
         return this.nodes.size();
     } 
     
     /* roads of map */
-    protected ArrayList<Link> roads;
-    public Link getRoad(int index){
+    protected List<ILink> roads;
+    @Override
+    public List<ILink> getRoads() {
+		return roads;
+	}
+    @Override
+    public ILink getRoad(int index){
         return this.roads.get(index);
     }
+    @Override
     public int numberOfRoads(){
         return this.roads.size();
     }
     
     /* rails of map */
-    protected ArrayList<Link> rails;
-    public Link getRail(int index){
+    protected ArrayList<ILink> rails;
+    @Override
+    public ArrayList<ILink> getRails() {
+		return rails;
+	}
+    @Override
+    public ILink getRail(int index){
         return this.rails.get(index);
     }
+    @Override
     public int numberOfRails(){
         return this.rails.size();
     }
     
     /* seas of map */
-    protected ArrayList<Link> seas;
-    public Link getSea(int index){
-        return this.seas.get(index);
+    protected ArrayList<ILink> seas;
+    @Override
+    public ArrayList<ILink> getSeas() {
+		return seas;
+	}
+    @Override
+    public ILink getSea(int index){
+        return seas.get(index);
     }
+    @Override
     public int numberOfSeas(){
         return this.seas.size();
     }
   
     /* general link methods */
-    public Link getLink(int index, TransportationMode mode){
+    @Override
+    public ILink getLink(int index, TransportationMode mode){
         switch(mode){
             case Road:
                 return this.roads.get(index);
@@ -87,6 +116,7 @@ public class Map {
                 throw new Error("Undefined mode error in getLink()!");
         }
     }
+    @Override
     public int numberOfLink(TransportationMode mode){
         switch(mode){
             case Road:
@@ -101,7 +131,7 @@ public class Map {
     }
         
     /* main class for components of map */
-    public class Component {
+    public class Component implements IComponent {
         
         /* generator methods */
         public Component(String name) {
@@ -109,19 +139,22 @@ public class Map {
             this.operationalState = OperationalState.Operating;
         }
         
-        /* map */
-        public Map Map(){
+		/* map */
+        @Override
+        public IMap Map(){
             return Map.this;
         }
         
         /* name */
-        public final String name;
+        private String name;
         
         /* operational state of link */
         protected Map.OperationalState operationalState;
+        @Override
         public Map.OperationalState getOperationalState() {
             return operationalState;
         }
+        @Override
         public boolean IsActive(){
             switch(this.operationalState){
                 case Operating:
@@ -132,20 +165,27 @@ public class Map {
                     throw new Error("Operational state of " + this.name + " is undefined!");
             }
         }
+        @Override
         public void Activate(){
             this.operationalState = Map.OperationalState.Operating;
         }
+        @Override
         public void Cancel(){
             this.operationalState = Map.OperationalState.NonOperating;
         }
+
+		@Override
+		public String getName() {
+			return this.name;
+		}
     }
     
     /* map component */
     /* link -> |Node| -> Link */
-    public class Node extends Map.Component {
+    public class Node extends Map.Component implements INode {
 
         /* generator method */
-        public Node(String name, Length x_pos, Length y_pos) {
+        public Node(String name, ILength x_pos, ILength y_pos) {
             super(name);
             this.x_pos = x_pos;
             this.y_pos = y_pos;
@@ -162,67 +202,80 @@ public class Map {
         }
 
         /* index of node */
-        public final int index;
+        private int index;
 
         /* location of node */
-        public final Length x_pos;
-        public final Length y_pos;
+        public final ILength x_pos;
+        public final ILength y_pos;
 
         /* entryLinks -> NODE -> outLinks */
             /* roads */
-        protected ArrayList<Link> entryRoads;
-        public Link getEntryRoads(int index){
+        protected ArrayList<ILink> entryRoads;
+        @Override
+        public ILink getEntryRoads(int index){
             return this.entryRoads.get(index);
         }
+        @Override
         public int numberOfEntryRoads(){
             return this.entryRoads.size();
         } 
 
-        protected ArrayList<Link> outRoads;
-        public Link getOutRoads(int index){
+        protected ArrayList<ILink> outRoads;
+        @Override
+        public ILink getOutRoads(int index){
             return this.outRoads.get(index);
         }
+        @Override
         public int numberOfOutRoads(){
             return this.outRoads.size();
         }
             /* rails */
-        protected ArrayList<Link> entryRails;
-        public Link getEntryRails(int index){
+        protected ArrayList<ILink> entryRails;
+        @Override
+        public ILink getEntryRails(int index){
             return this.entryRails.get(index);
         }
+        @Override
         public int numberOfEntryRails(){
             return this.entryRails.size();
         } 
 
-        protected ArrayList<Link> outRails;
-        public Link getOutRails(int index){
+        protected ArrayList<ILink> outRails;
+        @Override
+        public ILink getOutRails(int index){
             return this.outRails.get(index);
         }
+        @Override
         public int numberOfOutRails(){
             return this.outRails.size();
         }
 
             /* seas */
-        protected ArrayList<Link> entrySeas;
-        public Link getEntrySeas(int index){
+        protected ArrayList<ILink> entrySeas;
+        @Override
+        public ILink getEntrySeas(int index){
             return this.entrySeas.get(index);
         }
+        @Override
         public int numberOfEntrySeas(){
             return this.entrySeas.size();
         } 
 
-        protected ArrayList<Link> outSeas;
-        public Link getOutSeas(int index){
+        protected ArrayList<ILink> outSeas;
+        @Override
+        public ILink getOutSeas(int index){
             return this.outSeas.get(index);
         }
+        @Override
         public int numberOfOutSeas(){
             return this.outSeas.size();
         }
 
         /* general link methods */
             /* entry links */
-        public ArrayList<Link> getEntryLinks(){
-            ArrayList<Link> entryLinks = new ArrayList<>();
+        @Override
+        public ArrayList<ILink> getEntryLinks(){
+            ArrayList<ILink> entryLinks = new ArrayList<>();
 
             entryLinks.addAll(this.entryRoads);
             entryLinks.addAll(this.entryRails);
@@ -230,7 +283,8 @@ public class Map {
 
             return entryLinks;
         }
-        public ArrayList<Link> getEntryLinks(TransportationMode mode){
+        @Override
+        public ArrayList<ILink> getEntryLinks(TransportationMode mode){
             switch(mode){
                 case Road:
                     return this.entryRoads;
@@ -242,11 +296,13 @@ public class Map {
                     throw new Error("Undefined mode error in getEntryLinks()!");
             }
         }
-            public int numberOfEntryLinks(){
+        @Override
+        public int numberOfEntryLinks(){
             return this.entryRoads.size() + this.entryRails.size() + this.entrySeas.size();
         }
             /* out links */
-        public ArrayList<Link> getOutLinks(TransportationMode mode){
+        @Override
+        public ArrayList<ILink> getOutLinks(TransportationMode mode){
             switch(mode){
                 case Road:
                     return this.outRoads;
@@ -258,8 +314,9 @@ public class Map {
                     throw new Error("Undefined mode error in getOutLinks()!");
             }
         }
-        public ArrayList<Link> getOutLinks(){
-            ArrayList<Link> outLinks = new ArrayList<>();
+        @Override
+        public ArrayList<ILink> getOutLinks(){
+            ArrayList<ILink> outLinks = new ArrayList<>();
 
             outLinks.addAll(this.outRoads);
             outLinks.addAll(this.outRails);
@@ -267,6 +324,7 @@ public class Map {
 
             return outLinks;
         }
+        @Override
         public int numberOfOutLinks(){
             return this.outRoads.size() + this.outRails.size() + this.outSeas.size();
         }
@@ -300,36 +358,49 @@ public class Map {
             super.Activate(); //To change body of generated methods, choose Tools | Templates.
             /* active connected links */
             this.entryRoads.stream().forEach((link) -> {
-                if(link.outNode.IsActive())
+                if(link.getOutNode().IsActive())
                     link.Activate();
             });
             this.entryRails.stream().forEach((link) -> {
-                if(link.outNode.IsActive())
+                if(link.getOutNode().IsActive())
                     link.Activate();
             });
             this.entrySeas.stream().forEach((link) -> {
-                if(link.outNode.IsActive())
+                if(link.getOutNode().IsActive())
                     link.Activate();
             });
             this.outRoads.stream().forEach((link) -> {
-                if(link.entryNode.IsActive())
+                if(link.getEntryNode().IsActive())
                     link.Activate();
             });
             this.outRails.stream().forEach((link) -> {
-                if(link.entryNode.IsActive())
+                if(link.getEntryNode().IsActive())
                     link.Activate();
             });
             this.outSeas.stream().forEach((link) -> {
-                if(link.entryNode.IsActive())
+                if(link.getEntryNode().IsActive())
                     link.Activate();
             });
         }
+
+		@Override
+		public int getIndex() {
+			return this.index;
+		}
+		@Override
+		public ILength getXPos() {
+			return this.x_pos;
+		}
+		@Override
+		public ILength getYPos() {
+			return this.y_pos;
+		}
     }
-    
-    public class Link extends Map.Component {
+
+    public class Link extends Map.Component implements ILink {
 
         /* generator method */
-        private Link(String name, Node outNode, Node entryNode, Length length, Speed legalSpeedLimit, TransportationMode mode) {
+        private Link(String name, INode outNode, INode entryNode, ILength length, ISpeed legalSpeedLimit, TransportationMode mode) {
             super(name);
             this.outNode = outNode;
             this.entryNode = entryNode;
@@ -341,20 +412,21 @@ public class Map {
             this.entryNode.getEntryLinks(mode).add(this);
 
             /* calculate unit move */
-            this.x_unitMoveRate = entryNode.x_pos.subtraction(outNode.x_pos).division(length);
-            this.y_unitlMoveRate = entryNode.y_pos.subtraction(outNode.y_pos).division(length);
+            this.x_unitMoveRate = entryNode.getXPos().subtraction(outNode.getXPos()).division(length);
+            this.y_unitlMoveRate = entryNode.getYPos().subtraction(outNode.getYPos()).division(length);
             this.mode = mode;
             Map.this.roads.add(this);
         }
 
         /* outNode -|link|-> entryNode  */
-        public final Node outNode;
-        public final Node entryNode;
+        public final INode outNode;
+        public final INode entryNode;
 
         /* properties */
-        public final Length length;
-        private final Speed legalSpeedLimit;
-        public Speed getLegalSpeedLimit() {
+        private final ILength length;
+        private final ISpeed legalSpeedLimit;
+        @Override
+        public ISpeed getLegalSpeedLimit() {
             //traffic volume - speed limit balance will be added
             return legalSpeedLimit;
         }
@@ -365,63 +437,83 @@ public class Map {
         
         /* number of vehicle of link */
         private int numberOfVehicle;
+        @Override
         public int getNumberOfVehicle() {
             return numberOfVehicle;
         }
+        @Override
         public void addVehicle() {
             this.numberOfVehicle++;
         }
+        @Override
         public void removeVehicle() {
             this.numberOfVehicle--;
             if(this.numberOfVehicle < 0)
-                throw new Error("Number of vehicle of Link " + this.name + "is negative!");
+                throw new Error("Number of vehicle of Link " + this.getName() + "is negative!");
         }
-        
-        
+
         /* create return of the link */
-        public Link ReturnLink(){
+        @Override
+        public ILink returnLink(){
             return Map.this.new Link(name + "_return", entryNode, outNode, length, legalSpeedLimit, mode);
         }
+		@Override
+		public String getName() {
+			return name;
+		}
+		@Override
+		public INode getOutNode() {
+			return this.outNode;
+		}
+		@Override
+		public INode getEntryNode() {
+			return this.entryNode;
+		}
+		@Override
+		public ILength getLength() {
+			return length;
+		}
+		@Override
+		public double getXUnitMoveRate() {
+			return x_unitMoveRate;
+		}
+		@Override
+		public double getYUnitMoveRate() {
+			return y_unitlMoveRate;
+		}
+		@Override
+		public TransportationMode getMode() {
+			return mode;
+		}
     }
  
     /* road generator */
-    public Link Road(String name, int outNodeIndexID, int entryNodeID, Length length, Speed speedLimit){
+    @Override
+    public ILink Road(String name, int outNodeIndexID, int entryNodeID, ILength length, ISpeed speedLimit){
         if(outNodeIndexID>=0 && outNodeIndexID < this.nodes.size() && entryNodeID>=0 && entryNodeID < this.nodes.size())
             return this.new Link(name, this.nodes.get(outNodeIndexID), this.nodes.get(entryNodeID), length, speedLimit, TransportationMode.Road);
         else
             throw new Error("Node ID error in road generator!");
     }
     /* rail generator */
-    public Link Rail(String name, int outNodeIndexID, int entryNodeID, Length length, Speed speedLimit){
+    @Override
+    public ILink Rail(String name, int outNodeIndexID, int entryNodeID, ILength length, ISpeed speedLimit){
         if(outNodeIndexID>=0 && outNodeIndexID < this.nodes.size() && entryNodeID>=0 && entryNodeID < this.nodes.size())
             return this.new Link(name, this.nodes.get(outNodeIndexID), this.nodes.get(entryNodeID), length, speedLimit, TransportationMode.Rail);
         else
             throw new Error("Node ID error in rail generator!");
     }
     /* sea generator */
-    public Link Sea(String name, int outNodeIndexID, int entryNodeID, Length length, Speed speedLimit){
+    @Override
+    public ILink Sea(String name, int outNodeIndexID, int entryNodeID, ILength length, ISpeed speedLimit){
         if(outNodeIndexID>=0 && outNodeIndexID < this.nodes.size() && entryNodeID>=0 && entryNodeID < this.nodes.size())
             return this.new Link(name, this.nodes.get(outNodeIndexID), this.nodes.get(entryNodeID), length, speedLimit, TransportationMode.Sea);
         else
             throw new Error("Node ID error in sea generator!");
     }
+	@Override
+	public String getName() {
+		return this.name;
+	}
  
-    /* operational states of nodes and links as a results of closure of borders, road accident etc. */
-    enum OperationalState {
-        Operating,
-        NonOperating;
-    }
-    /* modes of links */
-    public enum TransportationMode{
-        Road,
-        Rail,
-        Sea;
-    }
-    /* modes of nodes */
-    enum NodeMode{
-        Road_Rail,
-        Road_Sea,
-        Rail_Sea,
-        Road_Rail_Sea;
-    }
 }

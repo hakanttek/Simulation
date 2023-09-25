@@ -5,11 +5,15 @@
  */
 package com.simulation.transportation.units;
 
+import com.simulation.contracts.transportation.units.ILength;
+import com.simulation.contracts.transportation.units.ISpeed;
+import com.simulation.contracts.transportation.units.ITime;
+
 /**
  *
  * @author hakantek
  */
-public class Time {
+public class Time implements ITime {
     
     /* time is kept base second */
     protected double base;
@@ -36,25 +40,31 @@ public class Time {
     }
         
     /* get time */
+    @Override
     public double getSecond() {
         return this.base;
     }
+    @Override
     public double getMinute() {
         return this.base/60.0;
     }
+    @Override
     public double getHour() {
         return this.base/3600.0;
     }
+    @Override
     public double getDay() {
         return this.base/86400.0;
     }
     
     /* change value */
-    public void increase(Time time){
-        this.base += time.base;
+    @Override
+    public void increase(ITime time){
+        this.base += time.getBase();
     }
-    public void decrease(Time time){
-        this.base -= time.base;
+    @Override
+    public void decrease(ITime time){
+        this.base -= time.getBase();
     }
     
     /* find min max lenght */
@@ -67,8 +77,9 @@ public class Time {
             
         return min;
     }
-    public Time min(Time time){
-        if(this.base < time.base)
+    @Override
+    public ITime min(ITime time){
+        if(this.base < time.getPureBase())
             return this;
         else
             return time;
@@ -82,60 +93,74 @@ public class Time {
             
         return max;
     }
-    public Time max(Time time){
-        if(this.base > time.base)
+    @Override
+    public ITime max(ITime time){
+        if(this.base > time.getPureBase())
             return this;
         else
             return time;
     }
     
     /* four operations */
-    public static Time Sum(Time ...times){
+    public static ITime Sum(ITime ...times){
         double sum = 0;
-        for(Time time:times)
-            sum += time.base;
+        for(ITime time:times)
+            sum += time.getPureBase();
         
         return new Time(sum);
     }
-    public Time sum(Time time){
-        return new Time(this.base + time.base);
+    @Override
+    public ITime sum(ITime time){
+        return new Time(this.base + time.getPureBase());
     }
-    public Time subtraction(Time time){
-        return new Time(this.base - time.base);
+    @Override
+    public ITime subtraction(ITime time){
+        return new Time(this.base - time.getPureBase());
     }
+    @Override
     public double multiplication(double value){
         return this.base * value;
     }
-    public Length multiplication(Speed speed) {
+    @Override
+    public ILength multiplication(ISpeed speed) {
         return Length.Meter(this.getSecond()*speed.getM_sec());
     }
-    public double division(Time time){
-        return this.base / time.base;
+    @Override
+    public double division(ITime time){
+        return this.base / time.getPureBase();
     }
+    @Override
     public Time division(double value){
         return new Time(this.base / value);
     }
-        
-    public boolean isGreaterThan(Time time) {
-        return this.base > time.base;
+
+    @Override
+    public boolean isGreaterThan(ITime time) {
+        return this.base > time.getPureBase();
     }
-    public boolean isLessThan(Time time) {
-        return this.base < time.base;
+    @Override
+    public boolean isLessThan(ITime time) {
+        return this.base < time.getPureBase();
     }
-    public boolean isEqualTo(Time time) {
-        return this.base == time.base;
+    @Override
+    public boolean isEqualTo(ITime time) {
+        return this.base == time.getPureBase();
     }
-    public boolean isGreaterThanOrEqualTo(Time time) {
-        return this.base >= time.base;
+    @Override
+    public boolean isGreaterThanOrEqualTo(ITime time) {
+        return this.base >= time.getPureBase();
     }
-    public boolean isLessThanOrEqualTo(Time time) {
-        return this.base <= time.base;
+    @Override
+    public boolean isLessThanOrEqualTo(ITime time) {
+        return this.base <= time.getPureBase();
     }
 
     private Unit baseUnit;
+    @Override
     public Unit getBaseUnit() {
         return baseUnit;
     }
+    @Override
     public void setBaseUnit(Unit baseUnit) {
         this.baseUnit = baseUnit;
         switch(baseUnit){
@@ -158,11 +183,8 @@ public class Time {
     public double getBase() {
         return base/this.baseUnitCoeff[baseUnitIndex];
     }
-    
-    public enum Unit{
-        second,
-        minute,
-        hour,
-        day;
+    @Override
+    public double getPureBase() {
+    	return base;
     }
 }

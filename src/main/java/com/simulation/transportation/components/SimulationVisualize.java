@@ -5,14 +5,18 @@
  */
 package com.simulation.transportation.components;
 
+import com.simulation.contracts.transportation.components.IMap;
+import com.simulation.contracts.transportation.components.IScenario;
+import com.simulation.contracts.transportation.components.ISimulationVisualize;
+import com.simulation.contracts.transportation.components.IVehicle;
+import com.simulation.contracts.transportation.units.ILength;
+import com.simulation.contracts.transportation.units.ITime;
 import com.simulation.transportation.units.Length;
 import com.simulation.transportation.units.Time;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,15 +27,16 @@ import javax.swing.Timer;
  *
  * @author hakantek
  */
-public class SimulationVisualize extends javax.swing.JFrame implements ActionListener{
+public class SimulationVisualize extends javax.swing.JFrame implements ActionListener, ISimulationVisualize {
 
-    /**
+	private static final long serialVersionUID = 1L;
+	/**
      * Creates new form SimulationVisualize
      * @param scenario
      * @param delay
      * @param movingTime
      */
-    protected SimulationVisualize(Scenario scenario, int delay, Time movingTime) {
+    protected SimulationVisualize(IScenario scenario, int delay, ITime movingTime) {
         this.scenario = scenario;
         
         /* create and start timer */
@@ -67,8 +72,9 @@ public class SimulationVisualize extends javax.swing.JFrame implements ActionLis
     }// </editor-fold>//GEN-END:initComponents
 
     /* run simulation visulation */
+    @Override
     public void run(double leftSpace, double rightSpace, double topSpace, double bottomSpace,
-            Length nodeR, Color nodeColor, Font nodeTextFont, Color nodeTextColor,
+            ILength nodeR, Color nodeColor, Font nodeTextFont, Color nodeTextColor,
             Color roadColor, Color railColor, Color seaColor) {
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -102,15 +108,15 @@ public class SimulationVisualize extends javax.swing.JFrame implements ActionLis
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         
         /* calculate max x_pos and max y_pos */
-        Length max_xPos = Length.Meter(0);
-        Length max_yPos = Length.Meter(0);
-        for(Map.Node node:this.scenario.nodes){
+        ILength max_xPos = Length.Meter(0);
+        ILength max_yPos = Length.Meter(0);
+        for(IMap.INode node:this.scenario.getNodes()){
             /* değişecek */
-            if(node.x_pos.sum(nodeR.division(2)).isGreaterThan(max_xPos))
-                max_xPos = Length.Meter(node.x_pos.sum(nodeR.division(2)).getMeter());
+            if(node.getXPos().sum(nodeR.division(2)).isGreaterThan(max_xPos))
+                max_xPos = Length.Meter(node.getXPos().sum(nodeR.division(2)).getMeter());
             
-            if(node.y_pos.sum(nodeR.division(2)).isGreaterThan(max_yPos))
-                max_yPos = Length.Meter(node.y_pos.sum(nodeR.division(2)).getMeter());
+            if(node.getYPos().sum(nodeR.division(2)).isGreaterThan(max_yPos))
+                max_yPos = Length.Meter(node.getYPos().sum(nodeR.division(2)).getMeter());
         }
         
         /* calculate size ratio, assign bottom space and left space */
@@ -127,26 +133,30 @@ public class SimulationVisualize extends javax.swing.JFrame implements ActionLis
         this.setVisible(true);
     }
     /* stop simulation */
+    @Override
     public void stop(){
         this.timer.stop();
     }
     
     /* timer of simulation */
     private Timer timer;
+    @Override
     public void setTimerDelay(int delay){
         this.timer.setDelay(delay);
     }
-    private Time movingTime;
-    public void setMovingTime(Time movingTime) {
+    private ITime movingTime;
+    @Override
+    public void setMovingTime(ITime movingTime) {
         this.movingTime = movingTime;
     }
     
     /* scenario */
-    private Scenario scenario;
+    private IScenario scenario;
     
     /* visual parameters of node */
-    private Length nodeR;
-    public void setLenght(Length length){
+    private ILength nodeR;
+    @Override
+    public void setLenght(ILength length){
         this.nodeR = length;
     }
     
@@ -195,15 +205,15 @@ public class SimulationVisualize extends javax.swing.JFrame implements ActionLis
     private void paintNodes(Graphics g){
         /* draw nodes */    
         g.setColor(this.nodeColor);
-        this.scenario.nodes.stream().forEach((node) -> {
-            g.fillOval(this.x_pix(node.x_pos), this.y_pix(node.y_pos), (int)this.nodeR.getMeter(), (int)this.nodeR.getMeter());
+        this.scenario.getNodes().stream().forEach((node) -> {
+            g.fillOval(this.x_pix(node.getXPos()), this.y_pix(node.getYPos()), (int)this.nodeR.getMeter(), (int)this.nodeR.getMeter());
         });
         
         /* draw node names */
         g.setColor(this.nodeTextColor);
         g.setFont(this.nodeTextFont);
-        this.scenario.nodes.stream().forEach((node) -> {
-            g.drawString(node.name, this.x_pix(node.x_pos, this.nodeR.division(2.0)), this.y_pix(node.y_pos, this.nodeR.division(2.0)));
+        this.scenario.getNodes().stream().forEach((node) -> {
+            g.drawString(node.getName(), this.x_pix(node.getXPos(), this.nodeR.division(2.0)), this.y_pix(node.getYPos(), this.nodeR.division(2.0)));
         });
         
     }
@@ -213,31 +223,31 @@ public class SimulationVisualize extends javax.swing.JFrame implements ActionLis
         //g2.setStroke(new BasicStroke(5));
         
         //g2.setColor(this.roadColor);
-        for(Map.Link road : this.scenario.roads){
-            g.drawLine(this.x_pix(road.outNode.x_pos.sum(this.nodeR.division(2))),
-                    this.y_pix(road.outNode.y_pos.sum(this.nodeR.division(2))),
-                    this.x_pix(road.entryNode.x_pos.sum(this.nodeR.division(2))),
-                    this.y_pix(road.entryNode.y_pos.sum(this.nodeR.division(2))));
+        for(IMap.ILink road : this.scenario.getRoads()){
+            g.drawLine(this.x_pix(road.getOutNode().getXPos().sum(this.nodeR.division(2))),
+                    this.y_pix(road.getOutNode().getYPos().sum(this.nodeR.division(2))),
+                    this.x_pix(road.getEntryNode().getXPos().sum(this.nodeR.division(2))),
+                    this.y_pix(road.getEntryNode().getYPos().sum(this.nodeR.division(2))));
         }
         g.setColor(this.railColor);
-        for(Map.Link rail : this.scenario.rails){
-            g.drawLine(this.x_pix(rail.outNode.x_pos.sum(this.nodeR.division(2))),
-                    this.y_pix(rail.outNode.y_pos.sum(this.nodeR.division(2))),
-                    this.x_pix(rail.entryNode.x_pos.sum(this.nodeR.division(2))),
-                    this.y_pix(rail.entryNode.y_pos.sum(this.nodeR.division(2))));
+        for(IMap.ILink rail : this.scenario.getRails()){
+            g.drawLine(this.x_pix(rail.getOutNode().getXPos().sum(this.nodeR.division(2))),
+                    this.y_pix(rail.getOutNode().getYPos().sum(this.nodeR.division(2))),
+                    this.x_pix(rail.getEntryNode().getXPos().sum(this.nodeR.division(2))),
+                    this.y_pix(rail.getEntryNode().getYPos().sum(this.nodeR.division(2))));
         }
         g.setColor(this.seaColor);
-        for(Map.Link sea : this.scenario.seas){
-            g.drawLine(this.x_pix(sea.outNode.x_pos.sum(this.nodeR.division(2))),
-                    this.y_pix(sea.outNode.y_pos.sum(this.nodeR.division(2))),
-                    this.x_pix(sea.entryNode.x_pos.sum(this.nodeR.division(2))),
-                    this.y_pix(sea.entryNode.y_pos.sum(this.nodeR.division(2))));
+        for(IMap.ILink sea : this.scenario.getSeas()){
+            g.drawLine(this.x_pix(sea.getOutNode().getXPos().sum(this.nodeR.division(2))),
+                    this.y_pix(sea.getOutNode().getYPos().sum(this.nodeR.division(2))),
+                    this.x_pix(sea.getEntryNode().getXPos().sum(this.nodeR.division(2))),
+                    this.y_pix(sea.getEntryNode().getYPos().sum(this.nodeR.division(2))));
         }
     }
     private void paitVehicles(Graphics g){
         g.setColor(Color.ORANGE);
         
-        for(Vehicle vehicle : scenario.vehicles)
+        for(IVehicle vehicle : scenario.getVehicles())
             g.fillOval(this.x_pix(vehicle.getX_pos()), this.y_pix(vehicle.getY_pos()), 25, 25);
     }
     @Override
@@ -265,16 +275,16 @@ public class SimulationVisualize extends javax.swing.JFrame implements ActionLis
     }
     */
     
-    public int x_pix(Length x_pos){
+    public int x_pix(ILength x_pos){
         return (int)(x_pos.getBase() + leftSpace);
     }
-    public int x_pix(Length x_pos, Length shift){
+    public int x_pix(ILength x_pos, ILength shift){
         return (int)(x_pos.sum(shift).getBase() + leftSpace);
     }
-    public int y_pix(Length y_pos){
+    public int y_pix(ILength y_pos){
         return (int)(y_pos.getBase() + this.topSpace);
     }
-    public int y_pix(Length y_pos, Length shift){
+    public int y_pix(ILength y_pos, ILength shift){
         return (int)(y_pos.sum(shift).getBase() + this.topSpace);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

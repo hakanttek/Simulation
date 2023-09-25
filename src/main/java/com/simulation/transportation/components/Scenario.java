@@ -5,22 +5,28 @@
  */
 package com.simulation.transportation.components;
 
-import com.simulation.transportation.units.Date;
-import com.simulation.transportation.units.Length;
-import com.simulation.transportation.units.Speed;
+import com.simulation.contracts.transportation.components.IMap;
+import com.simulation.contracts.transportation.components.IScenario;
+import com.simulation.contracts.transportation.components.IVehicle;
+import com.simulation.contracts.transportation.components.IVehicleFleet;
+import com.simulation.contracts.transportation.units.IDateUnit;
+import com.simulation.contracts.transportation.units.ILength;
+import com.simulation.contracts.transportation.units.ISpeed;
+import com.simulation.contracts.transportation.units.ITime;
+import com.simulation.contracts.transportation.units.IWeight;
 import com.simulation.transportation.units.Time;
-import com.simulation.transportation.units.Weight;
+
 import java.awt.Color;
 import java.awt.Font;
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  * @author hakantek
  */
-public class Scenario extends Map {
+public class Scenario extends Map implements IScenario {
 
-    public Scenario(String name, Date currentDate, int delay, Time movingTime) {
+    public Scenario(String name, IDateUnit currentDate, int delay, ITime movingTime) {
         super(name, currentDate);
         this.vehicles = new VehicleFleet();
         this.visualize = new SimulationVisualize(this, delay, movingTime);
@@ -29,33 +35,43 @@ public class Scenario extends Map {
     }
     
     /* vehicles in the  scenario*/
-    protected VehicleFleet vehicles;
-    public Vehicle getVehicle(int index){
+    private IVehicleFleet vehicles;
+    @Override
+    public IVehicleFleet getVehicles() {
+		return vehicles;
+	}
+    @Override
+    public IVehicle getVehicle(int index){
        return this.vehicles.get(index);
     }
+    @Override
     public int numberOfVehicles(){
         return this.vehicles.size();
     }
     private int numberOfComplatedMoving;
-    protected void complateVehicleMoving(){
+    @Override
+	public void complateVehicleMoving(){
         this.numberOfComplatedMoving++;
     }
     
     /* visualize of scenario */
     private SimulationVisualize visualize;
+    @Override
     public void run(double leftSpace, double rightSpace, double topSpace, double bottomSpace,
-            Length nodeR, Color nodeColor, Font nodeTextFont, Color nodeTextColor,
+            ILength nodeR, Color nodeColor, Font nodeTextFont, Color nodeTextColor,
             Color roadColor, Color railColor, Color seaColor){
         this.visualize.run(leftSpace, rightSpace, topSpace, bottomSpace, nodeR, 
                 nodeColor, nodeTextFont, nodeTextColor, roadColor, railColor, seaColor);
     }
     
     /* create a vehicle */
-    public Vehicle vehicle(String name, Speed maxSpeed, Map.TransportationMode mode){
+    @Override
+    public IVehicle vehicle(String name, ISpeed maxSpeed, TransportationMode mode){
         this.vehicles.add(new Vehicle(this, name, maxSpeed, mode));
         return this.vehicles.get(this.vehicles.size() - 1);
     }
-    public Vehicle vehicle(String name, Speed maxSpeed, Map.TransportationMode mode, Date depatureDate, Link ...links){
+    @Override
+    public IVehicle vehicle(String name, ISpeed maxSpeed, TransportationMode mode, IDateUnit depatureDate, ILink ...links){
         this.vehicles.add(new Vehicle(this, name, maxSpeed, mode){
             {
                 assign(depatureDate, links);
@@ -63,7 +79,8 @@ public class Scenario extends Map {
         });
         return this.vehicles.get(this.vehicles.size() - 1);
     }
-    public Vehicle vehicle(String name, Speed maxSpeed, Map.TransportationMode mode, Date depatureDate, ArrayList<Link> links){
+    @Override
+    public IVehicle vehicle(String name, ISpeed maxSpeed, IMap.TransportationMode mode, IDateUnit depatureDate, List<ILink> links){
         this.vehicles.add(new Vehicle(this, name, maxSpeed, mode){
             {
                 assign(depatureDate, links);
@@ -73,23 +90,31 @@ public class Scenario extends Map {
     }
     
     /* create vehicle fleet */
-    public VehicleFleet vehicleFleet(String name, Speed maxSpeed, Weight containerCapacity, Weight totalWeight){
-        VehicleFleet vehicleFleet = new VehicleFleet(this, name, maxSpeed, containerCapacity, totalWeight);
+    @Override
+    public IVehicleFleet vehicleFleet(String name, ISpeed maxSpeed, IWeight containerCapacity, IWeight totalWeight){
+        IVehicleFleet vehicleFleet = new VehicleFleet(this, name, maxSpeed, containerCapacity, totalWeight);
         this.vehicles.addAll(vehicleFleet);
         return vehicleFleet;
     }
-    public VehicleFleet vehicleFleet(String name, Speed maxSpeed, Weight containerCapacity, Weight totalWeight, Date depatureDate, Link ...links){
+    public IVehicleFleet vehicleFleet(String name, ISpeed maxSpeed, IWeight containerCapacity, IWeight totalWeight, IDateUnit depatureDate, ILink ...links){
         VehicleFleet vehicleFleet = new VehicleFleet(this, name, maxSpeed, containerCapacity, totalWeight){
-            {//Düzenlenecek
+
+			private static final long serialVersionUID = 1L;
+
+			{// TODO arrange
                 assign(depatureDate,Time.Minute(30), links);
             }
         };
         this.vehicles.addAll(vehicleFleet);
         return vehicleFleet;
     }
-    public VehicleFleet vehicleFleet(String name, Speed maxSpeed, Weight containerCapacity, Weight totalWeight, Date depatureDate, ArrayList<Link> links){
+    @Override
+    public IVehicleFleet vehicleFleet(String name, ISpeed maxSpeed, IWeight containerCapacity, IWeight totalWeight, IDateUnit depatureDate, List<ILink> links){
         VehicleFleet vehicleFleet = new VehicleFleet(this, name, maxSpeed, containerCapacity, totalWeight){
-            {//Düzenlenecek
+
+			private static final long serialVersionUID = 1L;
+
+			{// TODO arrange
                 assign(depatureDate, Time.Minute(30), links);
             }
         };
@@ -98,10 +123,11 @@ public class Scenario extends Map {
     }
 
     /* move vehicles */
-    protected void move(Time time){
+    @Override
+    public void move(ITime time){
         if(this.numberOfComplatedMoving < this.vehicles.size())
             this.vehicles.stream().forEach((vehicle) -> {
-                vehicle.assignment.move(time);
+                vehicle.getAssignment().move(time);
         });
         else {
             this.simulationState = SimulationState.Completed;
@@ -111,11 +137,8 @@ public class Scenario extends Map {
     
     /* state of simulation */
     private SimulationState simulationState;
+    @Override
     public SimulationState getSimulationState() {
         return simulationState;
-    }
-    enum SimulationState{
-        Continuing,
-        Completed;
     }
 }

@@ -5,11 +5,13 @@
  */
 package com.simulation.transportation.units;
 
+import com.simulation.contracts.transportation.units.IWeight;
+
 /**
  *
  * @author hakantek
  */
-public class Weight {
+public class Weight implements IWeight {
     
     /* lenght is kept base gram */
     protected double base;
@@ -32,22 +34,27 @@ public class Weight {
     }
     
     /* get weight */
+    @Override
     public double getGram() {
         return base;
     }
+    @Override
     public double getKilogram() {
         return base/1000;
     }
+    @Override
     public double getTon() {
         return base/1000000;
     }
 
     /* change value */
-    public void increase(Weight weight){
-        this.base += weight.base;
+    @Override
+    public void increase(IWeight weight){
+        this.base += weight.getPureBase();
     }
-    public void decrease(Weight weight){
-        this.base -= weight.base;
+    @Override
+    public void decrease(IWeight weight){
+        this.base -= weight.getPureBase();
     }
     
     /* find min max lenght */
@@ -60,8 +67,9 @@ public class Weight {
             
         return min;
     }
-    public Weight min(Weight weight){
-        if(this.base < weight.base)
+    @Override
+    public IWeight min(IWeight weight){
+        if(this.base < weight.getPureBase())
             return this;
         else
             return weight;
@@ -75,8 +83,9 @@ public class Weight {
             
         return max;
     }
-    public Weight max(Weight weight){
-        if(this.base > weight.base)
+    @Override
+    public IWeight max(IWeight weight){
+        if(this.base > weight.getPureBase())
             return this;
         else
             return weight;
@@ -90,39 +99,50 @@ public class Weight {
         
         return new Weight(sum);
     }
-    public Weight sum(Weight weight){
-        return new Weight(this.base + weight.base);
+    @Override
+    public IWeight sum(IWeight weight){
+        return new Weight(this.base + weight.getPureBase());
     }
-    public Weight subtraction(Weight weight){
-        return new Weight(this.base - weight.base);
+    @Override
+    public IWeight subtraction(IWeight weight){
+        return new Weight(this.base - weight.getPureBase());
     }
+    @Override
     public double multiplication(double value){
         return this.base * value;
     }
-    public double division(Weight weight){
-        return this.base / weight.base;
+    @Override
+    public double division(IWeight weight){
+        return this.base / weight.getPureBase();
     }
+    @Override
     public Weight division(double value){
         return new Weight(this.base / value);
     }
-        
-    public boolean isGreaterThan(Weight weight) {
-        return this.base > weight.base;
+
+    @Override
+    public boolean isGreaterThan(IWeight weight) {
+        return this.base > weight.getPureBase();
     }
-    public boolean isLessThan(Weight weight) {
-        return this.base < weight.base;
+    @Override
+    public boolean isLessThan(IWeight weight) {
+        return this.base < weight.getPureBase();
     }
-    public boolean isEqualTo(Weight weight) {
-        return this.base == weight.base;
+    @Override
+    public boolean isEqualTo(IWeight weight) {
+        return this.base == weight.getPureBase();
     }
-    public boolean isGreaterThanOrEqualTo(Weight weight) {
-        return this.base >= weight.base;
+    @Override
+    public boolean isGreaterThanOrEqualTo(IWeight weight) {
+        return this.base >= weight.getPureBase();
     }
-    public boolean isLessThanOrEqualTo(Weight weight) {
-        return this.base <= weight.base;
+    @Override
+    public boolean isLessThanOrEqualTo(IWeight weight) {
+        return this.base <= weight.getPureBase();
     }
 
     private Unit baseUnit;
+    @Override
     public Unit getBaseUnit() {
         return baseUnit;
     }
@@ -142,13 +162,12 @@ public class Weight {
     }
     private int baseUnitIndex;
     private final double[] baseUnitCoeff  = {1.0, 1000.0, 1000000.0};
+    @Override
     public double getBase() {
         return base/this.baseUnitCoeff[baseUnitIndex];
     }
-    
-    public enum Unit{
-        gram,
-        kilogram,
-        ton;
+    @Override
+    public double getPureBase() {
+    	return base;
     }
 }

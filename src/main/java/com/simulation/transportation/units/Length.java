@@ -5,11 +5,14 @@
  */
 package com.simulation.transportation.units;
 
+import com.simulation.contracts.transportation.units.ILength;
+import com.simulation.contracts.transportation.units.ISpeed;
+
 /**
  *
  * @author hakantek
  */
-public class Length {
+public class Length implements ILength {
     
     /* lenght is kept base meter */
     protected double base;
@@ -21,35 +24,42 @@ public class Length {
         this.baseUnitIndex = 0;
     }
     /* generate meter */
-    public static Length Meter(double lenght){
+    public static ILength Meter(double lenght){
         return new Length(lenght);
     }
     /* generate kilometer */
-    public static Length Kilometer(double lenght){
+    public static ILength Kilometer(double lenght){
         return new Length(lenght*1000);
     }
     /* generate mil */
-    public static Length Mil(double lenght){
+    public static ILength Mil(double lenght){
         return new Length(lenght*1609.344);
     }
     
     /* get lenght */
+    @Override
     public double getMeter() {
         return this.base;
     }
+    
+    @Override
     public double getKilometer() {
         return this.base/1000;
     }
+    
+    @Override
     public double getMil() {
         return this.base/1609.344;
     }
     
     /* change value */
-    public void increase(Length length){
-        this.base += length.base;
+    @Override    
+    public void increase(ILength length){
+        this.base += length.getPureBase();
     }
-    public void decrease(Length length){
-        this.base -= length.base;
+    @Override
+    public void decrease(ILength length){
+        this.base -= length.getPureBase();
     }
     
     /* find min max lenght */
@@ -62,8 +72,9 @@ public class Length {
             
         return min;
     }
-    public Length min(Length length){
-        if(this.base < length.base)
+    @Override
+    public ILength min(ILength length){
+        if(this.base < length.getPureBase())
             return this;
         else
             return length;
@@ -77,8 +88,9 @@ public class Length {
             
         return max;
     }
-    public Length max(Length length){
-        if(this.base > length.base)
+    @Override
+    public ILength max(ILength length){
+        if(this.base > length.getPureBase())
             return this;
         else
             return length;
@@ -92,51 +104,63 @@ public class Length {
         
         return new Length(sum);
     }
-    public Length sum(Length length){
-        return new Length(this.base + length.base);
+    @Override
+    public ILength sum(ILength length){
+        return new Length(this.base + length.getPureBase());
     }
-    public Length subtraction(Length length){
-        return new Length(this.base - length.base);
+    @Override
+    public ILength subtraction(ILength length){
+        return new Length(this.base - length.getPureBase());
     }
+    @Override
     public double multiplication(double value){
         return this.base * value;
     }
-    public double division(Length length){
-        return this.base / length.base;
+    @Override
+    public double division(ILength length){
+        return this.base / length.getPureBase();
     }
-    public Length division(double value){
+    @Override
+    public ILength division(double value){
         return new Length(this.base / value);
     }
-    public Speed division(Time time){
+    
+    public ISpeed division(Time time){
         return Speed.m_sec(this.getMeter()/time.getSecond());
     }
     
+    @Override
+    public boolean isGreaterThan(ILength length) {
+        return this.base > length.getPureBase();
+    }
+    @Override
+    public boolean isLessThan(ILength length) {
+        return this.base < length.getPureBase();
+    }
+    @Override
+    public boolean isEqualTo(ILength length) {
+        return this.base == length.getPureBase();
+    }
+    @Override
+    public boolean isGreaterThanOrEqualTo(ILength length) {
+        return this.base >= length.getPureBase();
+    }
+    @Override
+    public boolean isLessThanOrEqualTo(ILength length) {
+        return this.base <= length.getPureBase();
+    }
     
-    public boolean isGreaterThan(Length length) {
-        return this.base > length.base;
-    }
-    public boolean isLessThan(Length length) {
-        return this.base < length.base;
-    }
-    public boolean isEqualTo(Length length) {
-        return this.base == length.base;
-    }
-    public boolean isGreaterThanOrEqualTo(Length length) {
-        return this.base >= length.base;
-    }
-    public boolean isLessThanOrEqualTo(Length length) {
-        return this.base <= length.base;
-    }
-    
-    
-    public Length Copy(){
+    @Override
+    public ILength Copy(){
         return new Length(this.base);
     }
     
     private Unit baseUnit;
+    @Override
     public Unit getBaseUnit() {
         return baseUnit;
     }
+    @Override
     public void setBaseUnit(Unit baseUnit) {
         this.baseUnit = baseUnit;
         switch(baseUnit){
@@ -153,13 +177,12 @@ public class Length {
     }
     private int baseUnitIndex;
     private final double[] baseUnitCoeff  = {1.0, 1000.0, 1609.344};
+    @Override
+    public double getPureBase() {
+    	return base;
+    }
+    @Override
     public double getBase() {
         return base/this.baseUnitCoeff[baseUnitIndex];
-    }
-    
-    public enum Unit{
-        meter,
-        kilometer,
-        mil;
     }
 }
